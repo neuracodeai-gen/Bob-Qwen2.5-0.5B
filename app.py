@@ -85,16 +85,15 @@ def new_chat():
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.form if request.files else request.form
-    msg = data.get("message", "")
-    username = data.get("username", "")
-    about = data.get("about", "")
+    msg = request.form.get("message", "")
+    username = request.form.get("username", "")
+    about = request.form.get("about", "")
     
     # Handle file upload
     file_content = ""
     if 'file' in request.files:
         file = request.files['file']
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{username}_{filename}")
             file.save(filepath)

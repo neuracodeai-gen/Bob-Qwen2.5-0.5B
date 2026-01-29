@@ -377,6 +377,7 @@ async function sendMessage() {
   document.getElementById('file-preview').innerHTML = '';
 
   try {
+    console.log('Sending formData with file:', fileToSend ? fileToSend.name : 'none');
     const res = await fetch('/api/chat', {
       method: 'POST',
       body: formData
