@@ -271,6 +271,10 @@ function saveUserData() {
 }
 
 function newChat() {
+  // Clean up any pending thinking animations
+  const thinkingElements = document.querySelectorAll('.message-bubble.thinking');
+  thinkingElements.forEach(el => el.parentElement?.remove());
+
   const chat_id = 'chat_' + Date.now();
   currentChatId = chat_id;
   selectedFile = null;
@@ -309,6 +313,10 @@ function newChat() {
 }
 
 function loadChat(id) {
+  // Clean up any pending thinking animations
+  const thinkingElements = document.querySelectorAll('.message-bubble.thinking');
+  thinkingElements.forEach(el => el.parentElement?.remove());
+
   currentChatId = id;
   selectedFile = null;
   document.getElementById('file-preview').classList.remove('show');
