@@ -548,12 +548,15 @@ body {
 }
 
 .message-bubble {
-  max-width: 70%;
-  padding: 12px 16px;
+  max-width: 75%;
+  min-width: 140px;
+  padding: 14px 20px;
   border-radius: 12px;
   line-height: 1.5;
   word-wrap: break-word;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  display: inline-block;
 }
 
 .message-wrapper.user .message-bubble {
