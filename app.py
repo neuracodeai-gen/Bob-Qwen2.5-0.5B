@@ -123,14 +123,19 @@ def new_chat():
 def analyze_file():
     """Analyze and describe an uploaded file."""
     if 'file' not in request.files:
+        print("ERROR: No file in request")
         return jsonify({"error": "No file provided"}), 400
     
     file = request.files['file']
+    print(f"Received file: {file.filename}")
+    
     analysis = analyze_file_content(file)
     
     if analysis is None:
+        print("ERROR: Analysis returned None")
         return jsonify({"error": "Invalid file"}), 400
     
+    print(f"Analysis complete: {analysis['filename']} ({analysis['extension']})")
     return jsonify(analysis)
 
 @app.route("/api/chat", methods=["POST"])
@@ -140,21 +145,27 @@ def chat():
     about = request.form.get("about", "")
     file_analysis = request.form.get("file_analysis", "")
     
+    print(f"Chat request - User: {username}, Message: {msg[:50] if msg else 'EMPTY'}, File Analysis: {'YES' if file_analysis else 'NO'}")
+    
     # Include file analysis in the message if provided
     if file_analysis:
         msg += f"\n\n{file_analysis}"
+        print(f"File analysis appended to message, total length: {len(msg)}")
 
     if not msg:
+        print("ERROR: Empty message")
         return jsonify({"error": "No message provided"}), 400
 
     messages = [get_system_prompt(username, about)]
     
+    print(f"Calling Ollama with {len(messages) + 1} messages")
     response = ollama.chat(
         model=MODEL,
         messages=messages + [{"role": "user", "content": msg}]
     )
 
     ai_msg = response["message"]["content"]
+    print(f"Ollama response received, length: {len(ai_msg)}")
     return jsonify({"reply": ai_msg})
 
 @app.route("/api/generate_title", methods=["POST"])

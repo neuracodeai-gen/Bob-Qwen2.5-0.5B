@@ -335,9 +335,16 @@ function loadChat(id) {
 
 async function sendMessage() {
   const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const fileInput = document.getElementById('file-input');
   const msg = input.value.trim();
 
   if (!msg && !selectedFile) return;
+
+  // Disable input while bot responds
+  input.disabled = true;
+  sendBtn.disabled = true;
+  fileInput.disabled = true;
 
   if (!currentChatId) {
     newChat();
@@ -350,17 +357,34 @@ async function sendMessage() {
 
   // Preserve the file reference before we clear it
   const fileToSend = selectedFile;
+  
+  // Show user message
+  if (msg) {
+    renderBubble(msg, 'right');
+  }
+  
+  // Show file attachment in chat if present
+  if (fileToSend) {
+    renderBubble(`📎 **File: ${fileToSend.name}** (${(fileToSend.size / 1024).toFixed(2)} KB)`, 'right');
+  }
 
-  // Render user bubble (message or file placeholder)
-  renderBubble(msg || (fileToSend ? `📎 ${fileToSend.name}` : ''), 'right');
   input.value = '';
 
   const chat = currentUser.chats[currentChatId];
 
-  chat.messages.push({
-    role: "user",
-    content: msg || (fileToSend ? `📎 ${fileToSend.name}` : '')
-  });
+  if (msg) {
+    chat.messages.push({
+      role: "user",
+      content: msg
+    });
+  }
+  
+  if (fileToSend) {
+    chat.messages.push({
+      role: "user",
+      content: `📎 File: ${fileToSend.name}`
+    });
+  }
 
   let fileAnalysis = "";
   
@@ -379,20 +403,14 @@ async function sendMessage() {
       const analysisData = await analyzeRes.json();
       if (analysisData.filename && analysisData.content) {
         fileAnalysis = `[File: ${analysisData.filename} (${analysisData.extension})]\n${analysisData.content}`;
-        console.log('File analysis received:', fileAnalysis.substring(0, 100));
+        console.log('File analysis received:', analysisData.filename);
+      } else {
+        console.error('No analysis data:', analysisData);
       }
     } catch (err) {
       console.error('File analysis error:', err);
+      fileAnalysis = `[Could not analyze file: ${fileToSend.name}]`;
     }
-  }
-
-  const formData = new FormData();
-  formData.append('message', msg);
-  formData.append('username', currentUser.username);
-  formData.append('about', currentUser.about || '');
-  
-  if (fileAnalysis) {
-    formData.append('file_analysis', fileAnalysis);
   }
 
   // Now clear selection and preview
@@ -400,8 +418,24 @@ async function sendMessage() {
   document.getElementById('file-preview').classList.remove('show');
   document.getElementById('file-preview').innerHTML = '';
 
+  // Show thinking animation
+  const thinkingBubble = document.createElement('div');
+  thinkingBubble.className = 'message-wrapper ai';
+  thinkingBubble.innerHTML = `<div class="message-bubble thinking"><span></span><span></span><span></span></div>`;
+  box.appendChild(thinkingBubble);
+  box.scrollTop = box.scrollHeight;
+
   try {
-    console.log('Sending formData with file analysis');
+    console.log('Sending chat request with file analysis');
+    const formData = new FormData();
+    formData.append('message', msg);
+    formData.append('username', currentUser.username);
+    formData.append('about', currentUser.about || '');
+    
+    if (fileAnalysis) {
+      formData.append('file_analysis', fileAnalysis);
+    }
+
     const res = await fetch('/api/chat', {
       method: 'POST',
       body: formData
@@ -409,8 +443,12 @@ async function sendMessage() {
 
     const data = await res.json();
 
+    // Remove thinking animation
+    thinkingBubble.remove();
+
     if (data.error) {
       renderBubble('Error: ' + data.error, 'left');
+      enableInput();
       return;
     }
 
@@ -422,15 +460,24 @@ async function sendMessage() {
     renderBubble(data.reply, 'left');
 
     if (chat.title === "New Chat") {
-      chat.title = generateTitle(msg);
+      chat.title = generateTitle(msg || (fileToSend ? fileToSend.name : 'Chat'));
       document.getElementById('chat-title').textContent = chat.title;
     }
 
     saveUserData();
     refreshChatList();
   } catch (err) {
+    thinkingBubble.remove();
     renderBubble('Connection error: ' + err.message, 'left');
+  } finally {
+    enableInput();
   }
+}
+
+function enableInput() {
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('file-input').disabled = false;
 }
 
 function generateTitle(msg) {
