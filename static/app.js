@@ -3,14 +3,15 @@ let currentChatId = null;
 let selectedFile = null;
 let currentUser = null;
 
-// ============ AUTH ============
-function toggleAuthForm() {
-  const loginForm = document.getElementById('login-form');
-  const signupForm = document.getElementById('signup-form');
-  loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
-  signupForm.style.display = signupForm.style.display === 'none' ? 'block' : 'none';
+// ============ AUTH SECTIONS ============
+function showAuthSection(sectionId) {
+  document.getElementById('auth-welcome').style.display = 'none';
+  document.getElementById('auth-signin').style.display = 'none';
+  document.getElementById('auth-signup').style.display = 'none';
+  document.getElementById(sectionId).style.display = 'block';
 }
 
+// ============ AUTH ============
 function getUsers() {
   const users = localStorage.getItem('bob_users');
   return users ? JSON.parse(users) : {};
@@ -26,6 +27,30 @@ function showAuthError(msg) {
   setTimeout(() => { errorEl.textContent = ''; }, 3000);
 }
 
+// Sign In choice button
+document.getElementById('btn-signin-choice').addEventListener('click', () => {
+  showAuthSection('auth-signin');
+  document.getElementById('login-username').focus();
+});
+
+// Sign Up choice button
+document.getElementById('btn-signup-choice').addEventListener('click', () => {
+  showAuthSection('auth-signup');
+  document.getElementById('signup-username').focus();
+});
+
+// Back buttons
+document.getElementById('back-to-welcome-1').addEventListener('click', (e) => {
+  e.preventDefault();
+  showAuthSection('auth-welcome');
+});
+
+document.getElementById('back-to-welcome-2').addEventListener('click', (e) => {
+  e.preventDefault();
+  showAuthSection('auth-welcome');
+});
+
+// Sign In button
 document.getElementById('login-btn').addEventListener('click', () => {
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value.trim();
@@ -46,6 +71,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
   loginUser(username, user);
 });
 
+// Sign Up button
 document.getElementById('signup-btn').addEventListener('click', () => {
   const username = document.getElementById('signup-username').value.trim();
   const password = document.getElementById('signup-password').value.trim();

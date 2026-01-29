@@ -84,6 +84,25 @@ body {
   gap: 15px;
 }
 
+.auth-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-section h2 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.auth-section p:first-child {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
 .auth-form h2 {
   margin: 0 0 20px 0;
   font-size: 20px;
@@ -120,6 +139,17 @@ body {
 .auth-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(34, 211, 238, 0.3);
+}
+
+.auth-btn.secondary {
+  background: var(--bg-darker);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.auth-btn.secondary:hover {
+  background: var(--border);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.2);
 }
 
 .auth-toggle {
