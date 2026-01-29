@@ -6,13 +6,13 @@
   --primary: #06b6d4;
   --primary-light: #22d3ee;
   --primary-dark: #0891b2;
-  --bg-dark: #0f172a;
-  --bg-darker: #020617;
-  --bg-card: #0f172a;
+  --bg-dark: #1f1f1f; /* changed to neutral gray */
+  --bg-darker: #0f0f0f;
+  --bg-card: #2b2b2b; /* card background is slightly lighter gray */
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
-  --border: #1e293b;
-  --hover: #1e293b;
+  --border: #333333;
+  --hover: #2a2a2a;
 }
 
 body.light-mode {
@@ -455,7 +455,7 @@ body {
 .chat-header {
   padding: 16px 24px;
   border-bottom: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(31, 31, 31, 0.8);
   backdrop-filter: blur(10px);
 }
 
@@ -475,6 +475,32 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Centered welcome placeholder for new chats */
+.welcome-placeholder {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 20px;
+}
+
+.welcome-placeholder .bob-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome-placeholder .greeting {
+  font-size: 18px;
+  color: var(--text-primary);
 }
 
 .chat-box::-webkit-scrollbar {

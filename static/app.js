@@ -276,16 +276,36 @@ function newChat() {
   selectedFile = null;
   document.getElementById('file-preview').classList.remove('show');
   document.getElementById('file-preview').innerHTML = '';
-
   currentUser.chats[chat_id] = {
     title: "New Chat",
     messages: []
   };
   saveUserData();
 
-  document.getElementById('chat-box').innerHTML = '';
+  const box = document.getElementById('chat-box');
+  box.innerHTML = '';
   document.getElementById('chat-title').textContent = 'New Chat';
   refreshChatList();
+
+  // Show centered welcome placeholder with randomized greetings
+  const phrases = [
+    'Nice to meet you {{username}}',
+    'Hi {{username}}',
+    'Hello {{username}}, how can I help today?',
+    'Hey {{username}} — tell me what you need'
+  ];
+
+  const name = currentUser && currentUser.username ? currentUser.username : '';
+  const pick = phrases[Math.floor(Math.random() * phrases.length)].replace('{{username}}', name);
+
+  const placeholder = document.createElement('div');
+  placeholder.className = 'welcome-placeholder';
+  placeholder.innerHTML = `
+    <div class="bob-title">Bob</div>
+    <div class="greeting">${pick}</div>
+  `;
+
+  box.appendChild(placeholder);
 }
 
 function loadChat(id) {
@@ -322,6 +342,11 @@ async function sendMessage() {
   if (!currentChatId) {
     newChat();
   }
+
+  // If a welcome placeholder exists, remove it before showing messages
+  const box = document.getElementById('chat-box');
+  const ph = box.querySelector('.welcome-placeholder');
+  if (ph) ph.remove();
 
   renderBubble(msg || `📎 ${selectedFile.name}`, 'right');
   input.value = '';
