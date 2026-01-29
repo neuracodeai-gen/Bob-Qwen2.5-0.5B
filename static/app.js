@@ -348,18 +348,18 @@ async function sendMessage() {
   const ph = box.querySelector('.welcome-placeholder');
   if (ph) ph.remove();
 
-  renderBubble(msg || `📎 ${selectedFile.name}`, 'right');
+  // Preserve the file reference before we clear it
+  const fileToSend = selectedFile;
+
+  // Render user bubble (message or file placeholder)
+  renderBubble(msg || (fileToSend ? `📎 ${fileToSend.name}` : ''), 'right');
   input.value = '';
-  
-  selectedFile = null;
-  document.getElementById('file-preview').classList.remove('show');
-  document.getElementById('file-preview').innerHTML = '';
 
   const chat = currentUser.chats[currentChatId];
 
   chat.messages.push({
     role: "user",
-    content: msg
+    content: msg || (fileToSend ? `📎 ${fileToSend.name}` : '')
   });
 
   const formData = new FormData();
@@ -367,9 +367,14 @@ async function sendMessage() {
   formData.append('username', currentUser.username);
   formData.append('about', currentUser.about || '');
 
-  if (selectedFile) {
-    formData.append('file', selectedFile);
+  if (fileToSend) {
+    formData.append('file', fileToSend);
   }
+
+  // Now clear selection and preview
+  selectedFile = null;
+  document.getElementById('file-preview').classList.remove('show');
+  document.getElementById('file-preview').innerHTML = '';
 
   try {
     const res = await fetch('/api/chat', {

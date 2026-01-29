@@ -56,7 +56,9 @@ def generate_title(first_user_message):
     return res["message"]["content"].strip()
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    # Accept all files for local/offline usage; server will attempt to read text
+    # and fall back to attaching filename when binary/unreadable.
+    return True
 
 # chat_id -> { title: str, messages: [] }
 chats = {}
