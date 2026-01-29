@@ -60,6 +60,42 @@ def allowed_file(filename):
     # and fall back to attaching filename when binary/unreadable.
     return True
 
+def analyze_file_content(file):
+    """Extract and describe file content for the bot to analyze."""
+    if not file or not file.filename:
+        return None
+    
+    filename = secure_filename(file.filename)
+    file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'unknown'
+    
+    try:
+        # Try to read as text
+        file_bytes = file.read()
+        file.seek(0)  # Reset file pointer
+        
+        try:
+            content = file_bytes.decode('utf-8')
+        except:
+            content = f"[Binary file - {file_ext}]"
+        
+        # Limit to first 3000 chars for context
+        if len(content) > 3000:
+            content = content[:3000] + "\n... (truncated)"
+        
+        return {
+            "filename": filename,
+            "extension": file_ext,
+            "content": content,
+            "size": len(file_bytes)
+        }
+    except Exception as e:
+        return {
+            "filename": filename,
+            "extension": file_ext,
+            "content": f"[Could not read file: {str(e)}]",
+            "size": 0
+        }
+
 # chat_id -> { title: str, messages: [] }
 chats = {}
 
@@ -83,27 +119,30 @@ def new_chat():
     }
     return jsonify({"chat_id": chat_id})
 
+@app.route("/api/analyze_file", methods=["POST"])
+def analyze_file():
+    """Analyze and describe an uploaded file."""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    
+    file = request.files['file']
+    analysis = analyze_file_content(file)
+    
+    if analysis is None:
+        return jsonify({"error": "Invalid file"}), 400
+    
+    return jsonify(analysis)
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     msg = request.form.get("message", "")
     username = request.form.get("username", "")
     about = request.form.get("about", "")
+    file_analysis = request.form.get("file_analysis", "")
     
-    # Handle file upload
-    file_content = ""
-    if 'file' in request.files:
-        file = request.files['file']
-        if file and file.filename and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{username}_{filename}")
-            file.save(filepath)
-            
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    file_content = f.read()[:5000]
-                msg += f"\n\n[Attached file: {filename}]\n{file_content}"
-            except:
-                msg += f"\n\n[Attached file: {filename}]"
+    # Include file analysis in the message if provided
+    if file_analysis:
+        msg += f"\n\n{file_analysis}"
 
     if not msg:
         return jsonify({"error": "No message provided"}), 400

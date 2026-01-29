@@ -362,13 +362,37 @@ async function sendMessage() {
     content: msg || (fileToSend ? `📎 ${fileToSend.name}` : '')
   });
 
+  let fileAnalysis = "";
+  
+  // If there's a file, analyze it first
+  if (fileToSend) {
+    const formDataAnalyze = new FormData();
+    formDataAnalyze.append('file', fileToSend);
+    
+    try {
+      console.log('Analyzing file:', fileToSend.name);
+      const analyzeRes = await fetch('/api/analyze_file', {
+        method: 'POST',
+        body: formDataAnalyze
+      });
+      
+      const analysisData = await analyzeRes.json();
+      if (analysisData.filename && analysisData.content) {
+        fileAnalysis = `[File: ${analysisData.filename} (${analysisData.extension})]\n${analysisData.content}`;
+        console.log('File analysis received:', fileAnalysis.substring(0, 100));
+      }
+    } catch (err) {
+      console.error('File analysis error:', err);
+    }
+  }
+
   const formData = new FormData();
   formData.append('message', msg);
   formData.append('username', currentUser.username);
   formData.append('about', currentUser.about || '');
-
-  if (fileToSend) {
-    formData.append('file', fileToSend);
+  
+  if (fileAnalysis) {
+    formData.append('file_analysis', fileAnalysis);
   }
 
   // Now clear selection and preview
@@ -377,7 +401,7 @@ async function sendMessage() {
   document.getElementById('file-preview').innerHTML = '';
 
   try {
-    console.log('Sending formData with file:', fileToSend ? fileToSend.name : 'none');
+    console.log('Sending formData with file analysis');
     const res = await fetch('/api/chat', {
       method: 'POST',
       body: formData
