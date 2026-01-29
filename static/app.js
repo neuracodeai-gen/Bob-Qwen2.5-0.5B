@@ -358,15 +358,44 @@ async function sendMessage() {
   // Preserve the file reference before we clear it
   const fileToSend = selectedFile;
   
-  // Show user message
-  if (msg) {
-    renderBubble(msg, 'right');
+  // Create a wrapper for user message group (file + text)
+  const messageGroup = document.createElement('div');
+  messageGroup.className = 'user-message-group';
+  
+  // Show file attachment first (if present)
+  if (fileToSend) {
+    const fileAttachment = document.createElement('div');
+    fileAttachment.className = 'file-attachment';
+    fileAttachment.innerHTML = `
+      <div class="file-icon">📎</div>
+      <div class="file-info">
+        <div class="file-name">${fileToSend.name}</div>
+        <div class="file-size">${(fileToSend.size / 1024).toFixed(2)} KB</div>
+      </div>
+    `;
+    messageGroup.appendChild(fileAttachment);
   }
   
-  // Show file attachment in chat if present
-  if (fileToSend) {
-    renderBubble(`📎 **File: ${fileToSend.name}** (${(fileToSend.size / 1024).toFixed(2)} KB)`, 'right');
+  // Show user message
+  if (msg) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message-wrapper user';
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    const html = markdownToHtml(msg);
+    bubble.innerHTML = html;
+    
+    bubble.querySelectorAll('pre code').forEach(block => {
+      hljs.highlightElement(block);
+    });
+    
+    wrapper.appendChild(bubble);
+    messageGroup.appendChild(wrapper);
   }
+  
+  box.appendChild(messageGroup);
+  box.scrollTop = box.scrollHeight;
 
   input.value = '';
 
