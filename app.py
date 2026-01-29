@@ -26,6 +26,19 @@ SYSTEM_PROMPT = {
     "content": "You are a friendly AI assistant named Bob. You provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown."
 }
 
+def get_system_prompt(username="", about=""):
+    base = "You are a friendly AI assistant named Bob. You provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown."
+    
+    if username:
+        base += f"\n\nUser: {username}"
+    if about:
+        base += f"\nAbout the user: {about}"
+    
+    return {
+        "role": "system",
+        "content": base
+    }
+
 def generate_title(first_user_message):
     prompt = [
         {
@@ -70,9 +83,10 @@ def new_chat():
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.form if request.files else request.json
-    chat_id = data.get("chat_id")
-    user_msg = data.get("message", "")
+    data = request.form if request.files else request.form
+    msg = data.get("message", "")
+    username = data.get("username", "")
+    about = data.get("about", "")
     
     # Handle file upload
     file_content = ""
@@ -80,48 +94,47 @@ def chat():
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{chat_id}_{filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{username}_{filename}")
             file.save(filepath)
             
-            # Read file content for context
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
-                    file_content = f.read()[:5000]  # Limit to 5000 chars
-                user_msg += f"\n\n[Attached file: {filename}]\n{file_content}"
+                    file_content = f.read()[:5000]
+                msg += f"\n\n[Attached file: {filename}]\n{file_content}"
             except:
-                user_msg += f"\n\n[Attached file: {filename}]"
+                msg += f"\n\n[Attached file: {filename}]"
 
-    if not user_msg:
-        return jsonify({"error": "No message or file provided"}), 400
+    if not msg:
+        return jsonify({"error": "No message provided"}), 400
 
-    chat = chats.get(chat_id)
-    if not chat:
-        return jsonify({"error": "Chat not found"}), 404
-
-    chat["messages"].append({
-        "role": "user",
-        "content": user_msg
-    })
-
-    chat["messages"] = chat["messages"][-CONTEXT_WINDOW:]
-
+    messages = [get_system_prompt(username, about)]
+    
     response = ollama.chat(
         model=MODEL,
-        messages=chat["messages"]
+        messages=messages + [{"role": "user", "content": msg}]
     )
 
     ai_msg = response["message"]["content"]
-
-    chat["messages"].append({
-        "role": "assistant",
-        "content": ai_msg
-    })
-
-    # ---- generate title once ----
-    if chat["title"] == "New Chat":
-        chat["title"] = generate_title(user_msg)
-
     return jsonify({"reply": ai_msg})
+
+@app.route("/api/generate_title", methods=["POST"])
+def generate_title_endpoint():
+    data = request.json
+    msg = data.get("message", "")
+    
+    prompt = [
+        {
+            "role": "system",
+            "content": "Generate a very short chat title (max 5 words). No quotes."
+        },
+        {
+            "role": "user",
+            "content": msg
+        }
+    ]
+
+    res = ollama.chat(model=MODEL, messages=prompt)
+    return jsonify({"title": res["message"]["content"].strip()})
 
 @app.route("/api/chat/<chat_id>")
 def get_chat(chat_id):

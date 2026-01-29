@@ -5,21 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bob - Ollama Chat</title>
   <link rel="stylesheet" href="/static/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-dark">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" id="hljs-light" disabled>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
 
-<div class="app">
+<!-- LOGIN/SIGNUP PAGE -->
+<div id="auth-page" class="auth-page">
+  <div class="auth-container">
+    <h1 class="auth-logo">Bob</h1>
+    <p class="auth-subtitle">Offline AI Chat</p>
+    
+    <div id="login-form" class="auth-form">
+      <h2>Sign In</h2>
+      <input type="text" id="login-username" placeholder="Username" class="auth-input">
+      <input type="password" id="login-password" placeholder="Password" class="auth-input">
+      <button id="login-btn" class="auth-btn">Sign In</button>
+      <p class="auth-toggle">Don't have an account? <a href="#" onclick="toggleAuthForm(); return false;">Sign Up</a></p>
+    </div>
+
+    <div id="signup-form" class="auth-form" style="display: none;">
+      <h2>Create Account</h2>
+      <input type="text" id="signup-username" placeholder="Username" class="auth-input">
+      <input type="password" id="signup-password" placeholder="Password" class="auth-input">
+      <input type="text" id="signup-about" placeholder="About you (optional)" class="auth-input">
+      <button id="signup-btn" class="auth-btn">Sign Up</button>
+      <p class="auth-toggle">Already have an account? <a href="#" onclick="toggleAuthForm(); return false;">Sign In</a></p>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+  </div>
+</div>
+
+<!-- MAIN CHAT APP -->
+<div id="chat-app" class="app" style="display: none;">
 
   <!-- SIDEBAR -->
   <div id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title-wrapper">
         <h1 class="sidebar-logo">Bob</h1>
-        <p class="sidebar-subtitle">Offline AI</p>
+        <p class="sidebar-subtitle" id="user-label">Offline AI</p>
       </div>
-      <button id="toggle-sidebar" class="toggle-btn" title="Toggle sidebar">☰</button>
+      <div class="sidebar-controls">
+        <button id="theme-toggle" class="theme-btn" title="Toggle light/dark mode">🌙</button>
+        <button id="toggle-sidebar" class="toggle-btn" title="Toggle sidebar">☰</button>
+      </div>
     </div>
 
     <button id="new-chat-btn" class="new-chat-btn">
@@ -30,6 +62,8 @@
     <div id="chat-list" class="chat-list"></div>
 
     <div class="sidebar-footer">
+      <button id="user-profile-btn" class="user-profile-btn">👤 Profile</button>
+      <button id="logout-btn" class="logout-btn">🚪 Logout</button>
       <p class="footer-text">Powered by Qwen 2.5 0.5B</p>
     </div>
   </div>
@@ -68,6 +102,23 @@
 
 </div>
 
-<script src="/static/app.js"></script>
-</body>
-</html>
+<!-- PROFILE MODAL -->
+<div id="profile-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h2>User Profile</h2>
+    <div class="profile-field">
+      <label>Username:</label>
+      <p id="profile-username"></p>
+    </div>
+    <div class="profile-field">
+      <label>About:</label>
+      <textarea id="profile-about" class="profile-textarea"></textarea>
+    </div>
+    <div class="modal-buttons">
+      <button id="save-profile-btn" class="modal-btn">Save</button>
+      <button id="close-profile-btn" class="modal-btn cancel">Close</button>
+    </div>
+  </div>
+</div>
+
+</div>
