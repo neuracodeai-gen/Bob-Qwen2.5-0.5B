@@ -1,0 +1,6 @@
+@echo off
+echo Starting Ollama server in background...
+start /B ollama serve
+
+echo Launching Flask Chatbot...
+py app.py

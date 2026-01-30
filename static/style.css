@@ -2,18 +2,105 @@
   box-sizing: border-box;
 }
 
-:root {
-  --primary: #06b6d4;
-  --primary-light: #22d3ee;
-  --primary-dark: #0891b2;
-  --bg-dark: #1f1f1f; /* changed to neutral gray */
-  --bg-darker: #0f0f0f;
-  --bg-card: #2b2b2b; /* card background is slightly lighter gray */
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --border: #333333;
-  --hover: #2a2a2a;
+.sidebar-logo-img {
+  display: flex;
+  align-items: first baseline;
+  width: 50px;
 }
+/* Light theme gray and white colors */
+body.light-mode {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+body.light-mode #sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+
+body.light-mode #chat-area {
+  background: #fafafa;
+}
+
+body.light-mode .message-bubble {
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-mode .message-wrapper.user .message-bubble {
+  background: #e8e8e8;
+  border-color: #d0d0d0;
+}
+
+body.light-mode .file-attachment {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-mode .welcome-placeholder {
+  color: #cccccc;
+}
+
+body.light-mode .message-bubble.thinking span {
+  background: #cccccc;
+}
+
+/* File icon handled by CSS (no emoji in JS) */
+.file-icon::before {
+  content: "📄";
+  font-size: 24px;
+}
+
+body.light-mode .file-icon::before {
+  filter: grayscale(50%);
+}
+:root{
+  --bg-dark:#0b0e14;
+  --bg-darker:#07090f;
+  --bg-card:#1f242d;
+  --text-primary:#f8fafc;
+  --text-secondary:#cbd5f5;
+  --border:#2b3340;
+  --hover:#14182b;
+  --primary:#06b6d4;
+  --primary-light:#22d3ee;
+  --light-bg:#f5f5f5;
+  --light-border:#e0e0e0;
+  --light-card:#ffffff;
+  --light-text:#0a0b0f;
+  --light-muted:#475569;
+}
+body.light-mode{
+  background:var(--light-bg);
+  color:var(--light-text);
+}
+body.light-mode #sidebar,
+body.light-mode .chat-header,
+body.light-mode .chat-box,
+body.light-mode .input-wrapper{
+  background:var(--light-card);
+  border-color:var(--light-border);
+}
+body.light-mode .chat-header{
+  color:var(--light-text);
+  background:linear-gradient(120deg,#e7f6ff,#f8fbff);
+}
+body.light-mode .message-wrapper.user .message-bubble{
+  background:#e5e7eb;
+  border-color:#d1d5db;
+  color:#111827;
+}
+body.light-mode .welcome-placeholder,
+body.light-mode .message-bubble.thinking span{
+  color:var(--light-muted);
+}
+body.light-mode .file-attachment,
+body.light-mode .file-preview{
+  background:#f9fafb;
+  border:1px solid var(--light-border);
+}
+
 
 body.light-mode {
   --bg-dark: #f8fafc;
@@ -204,7 +291,7 @@ body {
 /* SIDEBAR */
 
 .sidebar {
-  width: 280px;
+  width: 300px;
   background: var(--bg-darker);
   display: flex;
   flex-direction: column;
@@ -1095,4 +1182,93 @@ body {
 .message-wrapper.user .message-bubble * {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Light theme gray and white colors */
+body.light-mode {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+body.light-mode #sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+
+body.light-mode #chat-area {
+  background: #fafafa;
+}
+
+body.light-mode .message-bubble {
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-mode .message-wrapper.user .message-bubble {
+  background: #e8e8e8;
+  border-color: #d0d0d0;
+}
+
+body.light-mode .file-attachment {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+body.light-mode .welcome-placeholder {
+  color: #666;
+}
+
+body.light-mode .message-bubble.thinking span {
+  background: #666;
+}
+
+/* File icon handled by CSS (no emoji in JS) */
+.file-icon::before {
+  content: "📄";
+  font-size: 24px;
+}
+
+body.light-mode .file-icon::before {
+  filter: grayscale(50%);
+}
+
+body.light-mode {
+  --bg-color: #f5f5f5;
+  --sidebar-bg: #ffffff;
+  --chat-bg: #ffffff;
+  --text-color: #1f1f1f;
+  --border-color: #e0e0e0;
+  --input-bg: #f8f8f8;
+  --input-border: #dcdcdc;
+  --bubble-user-bg: #e1e1e1;
+  --bubble-ai-bg: #f5f5f5;
+  --bubble-text: #1f1f1f;
+  --accent-color: #888;
+  --hover-bg: #f0f0f0;
+}
+
+.file-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent-color);
+  margin-right: 12px;
+}
+
+.file-attachment {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+.file-preview-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+  background: var(--accent-color);
+  margin-right: 8px;
 }

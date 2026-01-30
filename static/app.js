@@ -2,6 +2,7 @@
 let currentChatId = null;
 let selectedFile = null;
 let currentUser = null;
+let activeThinkingBubble = null;
 
 // ============ AUTH SECTIONS ============
 function showAuthSection(sectionId) {
@@ -104,6 +105,10 @@ function loginUser(username, userData) {
   
   loadUserChats();
   applyThemePreference();
+
+  if (!currentChatId) {
+    showWelcomeScreen();
+  }
 }
 
 function logoutUser() {
@@ -122,12 +127,12 @@ function applyThemePreference() {
   const isDark = localStorage.getItem('bob_theme') !== 'light';
   if (isDark) {
     document.body.classList.remove('light-mode');
-    document.getElementById('theme-toggle').textContent = '🌙';
+    document.getElementById('theme-toggle').textContent = '🔅';
     document.getElementById('hljs-dark').disabled = false;
     document.getElementById('hljs-light').disabled = true;
   } else {
     document.body.classList.add('light-mode');
-    document.getElementById('theme-toggle').textContent = '☀️';
+    document.getElementById('theme-toggle').textContent = '💡';
     document.getElementById('hljs-dark').disabled = true;
     document.getElementById('hljs-light').disabled = false;
   }
@@ -215,6 +220,32 @@ function renderBubble(text, side) {
   box.scrollTop = box.scrollHeight;
 }
 
+// ============ WELCOME SCREEN ============
+function showWelcomeScreen() {
+  const box = document.getElementById('chat-box');
+  box.innerHTML = '';
+  document.getElementById('chat-title').textContent = 'Start a new chat';
+  
+  const phrases = [
+    'Nice to meet you {{username}}',
+    'Hi {{username}}',
+    'Hello {{username}}, how can I help today?',
+    'Hey {{username}} — tell me what you need'
+  ];
+
+  const name = currentUser && currentUser.username ? currentUser.username : '';
+  const pick = phrases[Math.floor(Math.random() * phrases.length)].replace('{{username}}', name);
+
+  const placeholder = document.createElement('div');
+  placeholder.className = 'welcome-placeholder';
+  placeholder.innerHTML = `
+    <div class="bob-title">Bob</div>
+    <div class="greeting">${pick}</div>
+  `;
+
+  box.appendChild(placeholder);
+}
+
 // ============ CHAT ============
 function loadUserChats() {
   const users = getUsers();
@@ -249,8 +280,7 @@ function refreshChatList() {
 
         if (currentChatId === cid) {
           currentChatId = null;
-          document.getElementById("chat-box").innerHTML = "";
-          document.getElementById("chat-title").textContent = "Start a new chat";
+          showWelcomeScreen();
         }
 
         refreshChatList();
@@ -264,16 +294,43 @@ function refreshChatList() {
 }
 
 function saveUserData() {
+  if (!currentUser) return;
   const users = getUsers();
   users[currentUser.username].chats = currentUser.chats;
   users[currentUser.username].about = currentUser.about;
   saveUsers(users);
 }
 
+function removeThinkingAnimation() {
+  if (activeThinkingBubble) {
+    activeThinkingBubble.remove();
+    activeThinkingBubble = null;
+  }
+  document.querySelectorAll('.message-bubble.thinking').forEach(el => el.parentElement?.remove());
+}
+
+function showThinkingAnimation() {
+  removeThinkingAnimation();
+  const box = document.getElementById('chat-box');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message-wrapper ai';
+  wrapper.innerHTML = `<div class="message-bubble thinking"><span></span><span></span><span></span></div>`;
+  box.appendChild(wrapper);
+  box.scrollTop = box.scrollHeight;
+  activeThinkingBubble = wrapper;
+  return wrapper;
+}
+
+function setChatThinkingState(chatId, isThinking) {
+  if (!chatId || !currentUser) return;
+  const chat = currentUser.chats[chatId];
+  if (!chat) return;
+  chat.isThinking = isThinking;
+  saveUserData();
+}
+
 function newChat() {
-  // Clean up any pending thinking animations
-  const thinkingElements = document.querySelectorAll('.message-bubble.thinking');
-  thinkingElements.forEach(el => el.parentElement?.remove());
+  removeThinkingAnimation();
 
   const chat_id = 'chat_' + Date.now();
   currentChatId = chat_id;
@@ -282,7 +339,8 @@ function newChat() {
   document.getElementById('file-preview').innerHTML = '';
   currentUser.chats[chat_id] = {
     title: "New Chat",
-    messages: []
+    messages: [],
+    isThinking: false
   };
   saveUserData();
 
@@ -291,31 +349,11 @@ function newChat() {
   document.getElementById('chat-title').textContent = 'New Chat';
   refreshChatList();
 
-  // Show centered welcome placeholder with randomized greetings
-  const phrases = [
-    'Nice to meet you {{username}}',
-    'Hi {{username}}',
-    'Hello {{username}}, how can I help today?',
-    'Hey {{username}} — tell me what you need'
-  ];
-
-  const name = currentUser && currentUser.username ? currentUser.username : '';
-  const pick = phrases[Math.floor(Math.random() * phrases.length)].replace('{{username}}', name);
-
-  const placeholder = document.createElement('div');
-  placeholder.className = 'welcome-placeholder';
-  placeholder.innerHTML = `
-    <div class="bob-title">Bob</div>
-    <div class="greeting">${pick}</div>
-  `;
-
-  box.appendChild(placeholder);
+  showWelcomeScreen();
 }
 
 function loadChat(id) {
-  // Clean up any pending thinking animations
-  const thinkingElements = document.querySelectorAll('.message-bubble.thinking');
-  thinkingElements.forEach(el => el.parentElement?.remove());
+  removeThinkingAnimation();
 
   currentChatId = id;
   selectedFile = null;
@@ -338,7 +376,29 @@ function loadChat(id) {
     }
   });
 
+  if (chat.isThinking) {
+    showThinkingAnimation();
+  }
+
   refreshChatList();
+}
+
+// Convert file to text content
+async function convertFileToText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const content = e.target.result;
+      resolve(content);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    reader.readAsText(file);
+  });
 }
 
 async function sendMessage() {
@@ -349,7 +409,6 @@ async function sendMessage() {
 
   if (!msg && !selectedFile) return;
 
-  // Disable input while bot responds
   input.disabled = true;
   sendBtn.disabled = true;
   fileInput.disabled = true;
@@ -358,24 +417,20 @@ async function sendMessage() {
     newChat();
   }
 
-  // If a welcome placeholder exists, remove it before showing messages
   const box = document.getElementById('chat-box');
   const ph = box.querySelector('.welcome-placeholder');
   if (ph) ph.remove();
 
-  // Preserve the file reference before we clear it
   const fileToSend = selectedFile;
   
-  // Create a wrapper for user message group (file + text)
   const messageGroup = document.createElement('div');
   messageGroup.className = 'user-message-group';
   
-  // Show file attachment first (if present)
   if (fileToSend) {
     const fileAttachment = document.createElement('div');
     fileAttachment.className = 'file-attachment';
     fileAttachment.innerHTML = `
-      <div class="file-icon">📄</div>
+      <div class="file-icon"></div>
       <div class="file-info">
         <div class="file-name">${fileToSend.name}</div>
         <div class="file-size">${(fileToSend.size / 1024).toFixed(2)} KB</div>
@@ -384,7 +439,6 @@ async function sendMessage() {
     messageGroup.appendChild(fileAttachment);
   }
   
-  // Show user message
   if (msg) {
     const wrapper = document.createElement('div');
     wrapper.className = 'message-wrapper user';
@@ -419,48 +473,30 @@ async function sendMessage() {
   if (fileToSend) {
     chat.messages.push({
       role: "user",
-      content: `📎 File: ${fileToSend.name}`
+      content: `File: ${fileToSend.name}`
     });
   }
 
   let fileAnalysis = "";
   
-  // If there's a file, analyze it first
   if (fileToSend) {
-    const formDataAnalyze = new FormData();
-    formDataAnalyze.append('file', fileToSend);
-    
     try {
-      console.log('Analyzing file:', fileToSend.name);
-      const analyzeRes = await fetch('/api/analyze_file', {
-        method: 'POST',
-        body: formDataAnalyze
-      });
-      
-      const analysisData = await analyzeRes.json();
-      if (analysisData.filename && analysisData.content) {
-        fileAnalysis = `[File: ${analysisData.filename} (${analysisData.extension})]\n${analysisData.content}`;
-        console.log('File analysis received:', analysisData.filename);
-      } else {
-        console.error('No analysis data:', analysisData);
-      }
+      console.log('Converting file to text:', fileToSend.name);
+      const textContent = await convertFileToText(fileToSend);
+      fileAnalysis = `[File: ${fileToSend.name}]\n${textContent}`;
+      console.log('File converted to text successfully');
     } catch (err) {
-      console.error('File analysis error:', err);
-      fileAnalysis = `[Could not analyze file: ${fileToSend.name}]`;
+      console.error('File conversion error:', err);
+      fileAnalysis = `[Could not read file: ${fileToSend.name}]`;
     }
   }
 
-  // Now clear selection and preview
   selectedFile = null;
   document.getElementById('file-preview').classList.remove('show');
   document.getElementById('file-preview').innerHTML = '';
 
-  // Show thinking animation
-  const thinkingBubble = document.createElement('div');
-  thinkingBubble.className = 'message-wrapper ai';
-  thinkingBubble.innerHTML = `<div class="message-bubble thinking"><span></span><span></span><span></span></div>`;
-  box.appendChild(thinkingBubble);
-  box.scrollTop = box.scrollHeight;
+  setChatThinkingState(currentChatId, true);
+  showThinkingAnimation();
 
   try {
     console.log('Sending chat request with file analysis');
@@ -480,8 +516,8 @@ async function sendMessage() {
 
     const data = await res.json();
 
-    // Remove thinking animation
-    thinkingBubble.remove();
+    removeThinkingAnimation();
+    setChatThinkingState(currentChatId, false);
 
     if (data.error) {
       renderBubble('Error: ' + data.error, 'left');
@@ -504,7 +540,8 @@ async function sendMessage() {
     saveUserData();
     refreshChatList();
   } catch (err) {
-    thinkingBubble.remove();
+    removeThinkingAnimation();
+    setChatThinkingState(currentChatId, false);
     renderBubble('Connection error: ' + err.message, 'left');
   } finally {
     enableInput();
@@ -530,7 +567,8 @@ document.getElementById('file-input').addEventListener('change', (e) => {
     
     const preview = document.getElementById('file-preview');
     preview.innerHTML = `
-      <span>📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+      <span class="file-preview-icon"></span>
+      <span class="file-preview-name">${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
       <button class="file-preview-remove" onclick="removeFile()">✕</button>
     `;
     preview.classList.add('show');
@@ -569,3 +607,7 @@ if (savedUser) {
     localStorage.removeItem('bob_current_user');
   }
 }
+
+/*
+================= ADDITIONAL CSS SNIPPETS =================
+*/

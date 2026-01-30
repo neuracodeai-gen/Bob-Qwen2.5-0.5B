@@ -23,11 +23,21 @@ CONTEXT_WINDOW = 8
 
 SYSTEM_PROMPT = {
     "role": "system",
-    "content": "You are a friendly AI assistant named Bob. You provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown."
+    "content": """
+You are Friendly AI assistant  Named Bob. You reply Only In English!
+You provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown.
+Dont Make Up Things Or Answers And Identify as the User Or A Human being.
+You ARE Allowed To talk Militaric and Political Things Upto Just A Certain Extent Unless The User has Clear Intention of Harm!
+Explain Things Breifly and Clearly Unless Asked To Deeply Explain.
+if the User Seems To Talk Another Language Kindly Request Them To Talk English And You Can Interpret Basic Words Like Halo to hello But Dont Reply In That Language.
+Keep in Mind That The User Will Use Pronouns Related To them And You Should Also Use Pronouns Related To You.
+Remember the user's Username And About As Context For every Conversation.
+Dont mess Up the Users Username even if it sounds weird.
+    """
 }
 
 def get_system_prompt(username="", about=""):
-    base = "You are a friendly AI assistant named Bob. You provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown."
+    base = "You are Friendly AI assistant  Named Bob. You reply Only In English!, No French No German, No Indonesian Or Any Language Only English Strictly No Matter the Users Input\nYou provide helpful, accurate, and concise answers. When showing code, use proper markdown code blocks with language specification. Format your responses clearly with proper markdown.\nDont Make Up Things Or Answers And Identify as the User Or A Human being.\nYou ARE Allowed To talk Militaric and Political Things Upto Just A Certain Extent Unless The User has Clear Intention of Harm!\nExplain Things Breifly and Clearly Unless Asked To Deeply Explain.Dont Use More Than 2 Paragraphs in Your Answers.\nif the User Seems To Talk Another Language Kindly Request Them To Talk English And You Can Interpret Basic Words Like Halo to hello But Dont Reply In That Language."
     
     if username:
         base += f"\n\nUser: {username}"
@@ -43,7 +53,7 @@ def generate_title(first_user_message):
     prompt = [
         {
             "role": "system",
-            "content": "Generate a very short chat title (max 5 words). No quotes."
+            "content": "Generate a very short chat title (max 5 words). No quotes. Keep It Different form the user input and the title should Show The Topic Of The Chat Clearly."
         },
         {
             "role": "user",
@@ -61,7 +71,7 @@ def allowed_file(filename):
     return True
 
 def analyze_file_content(file):
-    """Extract and describe file content for the bot to analyze."""
+    """Extract and describe file content for the bot to analyze.Never Make Things Up.Example: user: Hello There Title: Greetings"""
     if not file or not file.filename:
         return None
     
@@ -176,7 +186,7 @@ def generate_title_endpoint():
     prompt = [
         {
             "role": "system",
-            "content": "Generate a very short chat title (max 5 words). No quotes."
+            "content": "Extract and describe file content for the bot to analyze.Never Make Things Up.Example: user: Hello There Title: Greetings"
         },
         {
             "role": "user",
@@ -204,4 +214,3 @@ def delete_chat(chat_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
-

@@ -1,0 +1,21 @@
+📌 To Install, Make Sure You Have:
+    🛠️ The Required Dependencies:
+        🐍 Flask
+        🤖 Ollama
+        🚀 gunicorn
+
+    ⚠️ If Not:
+        🌐 You should have a stable internet connection so that the installer can install them.
+🥇 Step #1:
+    💻 Run: run-bob.exe
+
+⚠️ If the file shows errors:
+
+    🔄 Run run_bob.bat
+    ✅ That should do it, as long as you have stable internet.
+
+🥈 Step #2:
+    🌐 Open: 127.0.0.1:5000 in your browser
+
+🎉 Now that you have the application and its dependencies installed, you can run the program directly from:
+▶️ run.bat
