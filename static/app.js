@@ -375,7 +375,7 @@ async function sendMessage() {
     const fileAttachment = document.createElement('div');
     fileAttachment.className = 'file-attachment';
     fileAttachment.innerHTML = `
-      <div class="file-icon">📎</div>
+      <div class="file-icon">📄</div>
       <div class="file-info">
         <div class="file-name">${fileToSend.name}</div>
         <div class="file-size">${(fileToSend.size / 1024).toFixed(2)} KB</div>
@@ -530,7 +530,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
     
     const preview = document.getElementById('file-preview');
     preview.innerHTML = `
-      <span>📎 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+      <span>📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
       <button class="file-preview-remove" onclick="removeFile()">✕</button>
     `;
     preview.classList.add('show');
